@@ -1,0 +1,122 @@
+/**
+ * Stacker Content Importer - Admin Styles
+ */
+
+.stacker-importer-settings {
+    background: #f1f1f1;
+    padding: 20px;
+    margin: -20px -20px 0 -22px;
+}
+
+.stacker-importer-settings h1 {
+    background: #fff;
+    padding: 20px;
+    margin: 0 0 20px 0;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.stacker-admin-container {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.stacker-main-content {
+    flex: 1;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.stacker-sidebar {
+    width: 300px;
+    flex-shrink: 0;
+}
+
+.stacker-info-box {
+    background: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.stacker-info-box h3 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.stacker-info-box h4 {
+    margin-bottom: 10px;
+}
+
+.stacker-info-box ul {
+    list-style: disc;
+    padding-left: 20px;
+    margin: 0;
+}
+
+.stacker-info-box ul li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.stacker-info-box p:last-child {
+    margin-bottom: 0;
+}
+
+.stacker-main-content hr {
+    margin: 30px 0;
+    border: none;
+    border-top: 1px solid #e5e5e5;
+}
+
+.stacker-main-content .form-table {
+    margin-top: 20px;
+}
+
+.stacker-main-content .form-table th {
+    padding: 20px 10px 20px 0;
+}
+
+.stacker-main-content .form-table td {
+    padding: 15px 10px;
+}
+
+.stacker-main-content input[type="url"].regular-text {
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Responsive */
+@media screen and (max-width: 1024px) {
+    .stacker-admin-container {
+        flex-direction: column;
+    }
+
+    .stacker-sidebar {
+        width: 100%;
+    }
+}
+
+/* Import status messages */
+.stacker-import-status {
+    padding: 15px;
+    margin: 20px 0;
+    border-left: 4px solid #00a0d2;
+    background: #f0f8ff;
+}
+
+.stacker-import-status.success {
+    border-left-color: #46b450;
+    background: #f0fff4;
+}
+
+.stacker-import-status.error {
+    border-left-color: #dc3232;
+    background: #fff0f0;
+}
+
+.stacker-import-status p {
+    margin: 0;
+}
