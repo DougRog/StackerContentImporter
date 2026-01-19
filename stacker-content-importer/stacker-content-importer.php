@@ -73,6 +73,9 @@ class Stacker_Content_Importer {
         // Schedule automatic imports
         add_action('stacker_import_cron', array($this, 'run_import'));
 
+        // Register AJAX handlers
+        add_action('wp_ajax_stacker_manual_import', array($this, 'ajax_manual_import'));
+
         // Register activation/deactivation hooks
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
@@ -173,17 +176,37 @@ class Stacker_Content_Importer {
             return;
         }
 
-        // Handle manual import
-        if (isset($_POST['stacker_manual_import']) && check_admin_referer('stacker_manual_import')) {
-            $result = $this->run_import();
-            if ($result['success']) {
-                echo '<div class="notice notice-success"><p>' . sprintf(__('Successfully imported %d articles.', 'stacker-importer'), $result['imported']) . '</p></div>';
-            } else {
-                echo '<div class="notice notice-error"><p>' . esc_html($result['message']) . '</p></div>';
-            }
+        include STACKER_IMPORTER_PLUGIN_DIR . 'templates/settings-page.php';
+    }
+
+    /**
+     * AJAX handler for manual import
+     */
+    public function ajax_manual_import() {
+        // Check nonce
+        check_ajax_referer('stacker_importer_nonce', 'nonce');
+
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to perform this action.', 'stacker-importer')
+            ));
         }
 
-        include STACKER_IMPORTER_PLUGIN_DIR . 'templates/settings-page.php';
+        // Run import
+        $result = $this->run_import();
+
+        // Send JSON response
+        if ($result['success']) {
+            wp_send_json_success(array(
+                'message' => sprintf(__('Successfully imported %d articles.', 'stacker-importer'), $result['imported']),
+                'imported' => $result['imported']
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => $result['message']
+            ));
+        }
     }
 
     /**

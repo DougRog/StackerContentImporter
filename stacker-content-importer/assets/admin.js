@@ -6,19 +6,61 @@
     'use strict';
 
     $(document).ready(function() {
-        // Handle import form submission
-        $('button[name="stacker_manual_import"]').on('click', function(e) {
+        // Handle import button click
+        $('#stacker_import_now_btn').on('click', function(e) {
+            e.preventDefault();
+
             var $button = $(this);
             var originalText = $button.text();
+            var $messageContainer = $('#stacker-import-message');
 
+            // Clear previous messages
+            $messageContainer.html('').removeClass('notice-success notice-error');
+
+            // Disable button and show loading state
             $button.prop('disabled', true);
             $button.text('Importing...');
 
-            // Re-enable button after form submission
-            setTimeout(function() {
-                $button.prop('disabled', false);
-                $button.text(originalText);
-            }, 2000);
+            // Make AJAX request
+            $.ajax({
+                url: stackerImporter.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'stacker_manual_import',
+                    nonce: stackerImporter.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $messageContainer
+                            .html('<p>' + response.data.message + '</p>')
+                            .addClass('notice notice-success')
+                            .show();
+
+                        // Update statistics if present
+                        var statsCount = $('.stacker-info-box strong:contains("Total Articles:")').parent();
+                        if (statsCount.length) {
+                            // You might want to refresh the count here
+                            location.reload();
+                        }
+                    } else {
+                        $messageContainer
+                            .html('<p>' + response.data.message + '</p>')
+                            .addClass('notice notice-error')
+                            .show();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $messageContainer
+                        .html('<p>' + 'An error occurred during import. Please try again.' + '</p>')
+                        .addClass('notice notice-error')
+                        .show();
+                },
+                complete: function() {
+                    // Re-enable button
+                    $button.prop('disabled', false);
+                    $button.text(originalText);
+                }
+            });
         });
 
         // Auto-save settings notification

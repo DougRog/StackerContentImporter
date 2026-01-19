@@ -80,14 +80,13 @@ $last_import = get_option('stacker_last_import', '');
             <h2><?php _e('Manual Import', 'stacker-importer'); ?></h2>
             <p><?php _e('Click the button below to manually import content from the Stacker feed.', 'stacker-importer'); ?></p>
 
-            <form method="post">
-                <?php wp_nonce_field('stacker_manual_import'); ?>
-                <p>
-                    <button type="submit" name="stacker_manual_import" class="button button-primary button-large">
-                        <?php _e('Import Now', 'stacker-importer'); ?>
-                    </button>
-                </p>
-            </form>
+            <div id="stacker-import-message" class="notice" style="display:none;"></div>
+
+            <p>
+                <button type="button" id="stacker_import_now_btn" class="button button-primary button-large">
+                    <?php _e('Import Now', 'stacker-importer'); ?>
+                </button>
+            </p>
         </div>
 
         <div class="stacker-sidebar">
