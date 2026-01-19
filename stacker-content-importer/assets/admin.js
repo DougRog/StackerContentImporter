@@ -6,13 +6,29 @@
     'use strict';
 
     $(document).ready(function() {
+        console.log('Stacker Importer: JavaScript loaded');
+        console.log('Stacker Importer Config:', typeof stackerImporter !== 'undefined' ? stackerImporter : 'NOT DEFINED');
+
+        var $button = $('#stacker_import_now_btn');
+        console.log('Import button found:', $button.length);
+
         // Handle import button click
-        $('#stacker_import_now_btn').on('click', function(e) {
+        $button.on('click', function(e) {
             e.preventDefault();
+            console.log('Import button clicked');
 
             var $button = $(this);
             var originalText = $button.text();
             var $messageContainer = $('#stacker-import-message');
+
+            // Check if stackerImporter is defined
+            if (typeof stackerImporter === 'undefined') {
+                console.error('stackerImporter is not defined!');
+                alert('Configuration error: stackerImporter is not defined');
+                return;
+            }
+
+            console.log('Making AJAX request to:', stackerImporter.ajax_url);
 
             // Clear previous messages
             $messageContainer.html('').removeClass('notice-success notice-error');
@@ -30,6 +46,7 @@
                     nonce: stackerImporter.nonce
                 },
                 success: function(response) {
+                    console.log('AJAX success:', response);
                     if (response.success) {
                         $messageContainer
                             .html('<p>' + response.data.message + '</p>')
@@ -39,8 +56,10 @@
                         // Update statistics if present
                         var statsCount = $('.stacker-info-box strong:contains("Total Articles:")').parent();
                         if (statsCount.length) {
-                            // You might want to refresh the count here
-                            location.reload();
+                            // Refresh page to update count
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
                         }
                     } else {
                         $messageContainer
@@ -50,12 +69,14 @@
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.error('AJAX error:', status, error, xhr.responseText);
                     $messageContainer
-                        .html('<p>' + 'An error occurred during import. Please try again.' + '</p>')
+                        .html('<p>An error occurred during import. Please try again.</p>')
                         .addClass('notice notice-error')
                         .show();
                 },
                 complete: function() {
+                    console.log('AJAX complete');
                     // Re-enable button
                     $button.prop('disabled', false);
                     $button.text(originalText);

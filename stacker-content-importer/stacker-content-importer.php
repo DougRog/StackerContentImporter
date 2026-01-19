@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('STACKER_IMPORTER_VERSION', '1.0.0');
+define('STACKER_IMPORTER_VERSION', '1.0.1');
 define('STACKER_IMPORTER_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('STACKER_IMPORTER_PLUGIN_URL', plugin_dir_url(__FILE__));
 
