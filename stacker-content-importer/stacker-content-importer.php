@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('STACKER_IMPORTER_VERSION', '1.0.3');
+define('STACKER_IMPORTER_VERSION', '1.0.4');
 define('STACKER_IMPORTER_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('STACKER_IMPORTER_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -166,6 +166,12 @@ class Stacker_Content_Importer {
             flush_rewrite_rules();
             update_option('stacker_importer_version', STACKER_IMPORTER_VERSION);
         }
+
+        // Ensure cron is scheduled
+        if (!wp_next_scheduled('stacker_import_cron')) {
+            $frequency = get_option('stacker_import_frequency', 'hourly');
+            wp_schedule_event(time(), $frequency, 'stacker_import_cron');
+        }
     }
 
     /**
@@ -187,9 +193,46 @@ class Stacker_Content_Importer {
      */
     public function register_settings() {
         register_setting('stacker_importer_settings', 'stacker_feed_url');
-        register_setting('stacker_importer_settings', 'stacker_import_frequency');
+        register_setting('stacker_importer_settings', 'stacker_import_frequency', array(
+            'sanitize_callback' => array($this, 'sanitize_import_frequency')
+        ));
         register_setting('stacker_importer_settings', 'stacker_tracking_pixel');
         register_setting('stacker_importer_settings', 'stacker_last_import');
+    }
+
+    /**
+     * Sanitize and reschedule cron when frequency changes
+     */
+    public function sanitize_import_frequency($new_frequency) {
+        $old_frequency = get_option('stacker_import_frequency', 'hourly');
+
+        // Validate the frequency
+        $valid_frequencies = array('hourly', 'twicedaily', 'daily');
+        if (!in_array($new_frequency, $valid_frequencies)) {
+            $new_frequency = 'hourly';
+        }
+
+        // If frequency changed, reschedule the cron
+        if ($old_frequency !== $new_frequency) {
+            $this->reschedule_cron($new_frequency);
+        }
+
+        return $new_frequency;
+    }
+
+    /**
+     * Reschedule the cron job with new frequency
+     */
+    public function reschedule_cron($frequency) {
+        // Clear existing schedule
+        $timestamp = wp_next_scheduled('stacker_import_cron');
+        if ($timestamp) {
+            wp_unschedule_event($timestamp, 'stacker_import_cron');
+        }
+        wp_clear_scheduled_hook('stacker_import_cron');
+
+        // Schedule with new frequency
+        wp_schedule_event(time(), $frequency, 'stacker_import_cron');
     }
 
     /**
@@ -608,9 +651,10 @@ class Stacker_Content_Importer {
             update_option('stacker_import_frequency', 'hourly');
         }
 
-        // Schedule cron job
+        // Schedule cron job with the saved frequency
+        $frequency = get_option('stacker_import_frequency', 'hourly');
         if (!wp_next_scheduled('stacker_import_cron')) {
-            wp_schedule_event(time(), 'hourly', 'stacker_import_cron');
+            wp_schedule_event(time(), $frequency, 'stacker_import_cron');
         }
     }
 
