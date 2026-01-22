@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('STACKER_IMPORTER_VERSION', '1.0.1');
+define('STACKER_IMPORTER_VERSION', '1.0.2');
 define('STACKER_IMPORTER_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('STACKER_IMPORTER_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -57,6 +57,9 @@ class Stacker_Content_Importer {
 
         // Register settings
         add_action('admin_init', array($this, 'register_settings'));
+
+        // Check version and flush rewrite rules if needed
+        add_action('admin_init', array($this, 'check_version'));
 
         // Enqueue admin scripts
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
@@ -106,7 +109,7 @@ class Stacker_Content_Importer {
             'show_ui'             => true,
             'show_in_menu'        => true,
             'query_var'           => true,
-            'rewrite'             => array('slug' => 'stacker-content'),
+            'rewrite'             => array('slug' => 'content'),
             'capability_type'     => 'post',
             'has_archive'         => true,
             'hierarchical'        => false,
@@ -121,10 +124,24 @@ class Stacker_Content_Importer {
         // Register custom taxonomy for categories
         register_taxonomy('stacker_category', 'stacker_content', array(
             'label'        => __('Stacker Categories', 'stacker-importer'),
-            'rewrite'      => array('slug' => 'stacker-category'),
+            'rewrite'      => array('slug' => 'content-category'),
             'hierarchical' => true,
             'show_in_rest' => true,
         ));
+    }
+
+    /**
+     * Check version and flush rewrite rules if needed
+     */
+    public function check_version() {
+        $saved_version = get_option('stacker_importer_version', '0');
+
+        if (version_compare($saved_version, STACKER_IMPORTER_VERSION, '<')) {
+            // Version has been updated, flush rewrite rules
+            $this->register_stacker_post_type();
+            flush_rewrite_rules();
+            update_option('stacker_importer_version', STACKER_IMPORTER_VERSION);
+        }
     }
 
     /**
@@ -554,6 +571,9 @@ class Stacker_Content_Importer {
 
         // Flush rewrite rules
         flush_rewrite_rules();
+
+        // Set version
+        update_option('stacker_importer_version', STACKER_IMPORTER_VERSION);
 
         // Set default options
         if (!get_option('stacker_feed_url')) {
