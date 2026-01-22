@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('STACKER_IMPORTER_VERSION', '1.0.2');
+define('STACKER_IMPORTER_VERSION', '1.0.3');
 define('STACKER_IMPORTER_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('STACKER_IMPORTER_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -51,6 +51,9 @@ class Stacker_Content_Importer {
     private function init_hooks() {
         // Register custom post type
         add_action('init', array($this, 'register_stacker_post_type'));
+
+        // Add permalink structure filter
+        add_filter('post_type_link', array($this, 'stacker_content_permalink'), 10, 2);
 
         // Add admin menu
         add_action('admin_menu', array($this, 'add_admin_menu'));
@@ -109,7 +112,7 @@ class Stacker_Content_Importer {
             'show_ui'             => true,
             'show_in_menu'        => true,
             'query_var'           => true,
-            'rewrite'             => array('slug' => 'content'),
+            'rewrite'             => array('slug' => 'content/%year%/%monthnum%'),
             'capability_type'     => 'post',
             'has_archive'         => true,
             'hierarchical'        => false,
@@ -128,6 +131,27 @@ class Stacker_Content_Importer {
             'hierarchical' => true,
             'show_in_rest' => true,
         ));
+    }
+
+    /**
+     * Handle permalink structure with year and month
+     */
+    public function stacker_content_permalink($post_link, $post) {
+        if ($post->post_type !== 'stacker_content') {
+            return $post_link;
+        }
+
+        if (strpos($post_link, '%year%') === false && strpos($post_link, '%monthnum%') === false) {
+            return $post_link;
+        }
+
+        $year = get_the_date('Y', $post->ID);
+        $month = get_the_date('m', $post->ID);
+
+        $post_link = str_replace('%year%', $year, $post_link);
+        $post_link = str_replace('%monthnum%', $month, $post_link);
+
+        return $post_link;
     }
 
     /**
